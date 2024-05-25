@@ -71,6 +71,13 @@ corPlot(correlacion, number.cex = 0.5)
 #por tanto, esto significa que el número de habitaciones en las casas, es mayor que el número de habitaciones en los apartamentos.
 
 
+ggplot(vivienda, aes(x = areaconst, y = preciom)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  # Agregar la línea de tendencia
+  labs(title = "Gráfico de Dispersión con Línea de Tendencia: Precio vs Área Construida", 
+       x = "Área Construida (metros cuadrados)", 
+       y = "Precio (millones de pesos COP)")
+
 hist(x = vivienda$zona, 
      main = "Histograma de Zonas", 
      xlab = "Zona", ylab = "Frecuencia",
@@ -109,6 +116,41 @@ viv_varianza <-map_dbl(vivienda, ~var(.))
 #Para aplicar el ACP se emplea la función prcomp(), pues por medio de esta función se pueden estandarizar
 #las variables para que tengan media 0 y desviación estándar 1,
 #seleccionando variables con mayor correlacion y numericas de origen
+
+##caso 1 incluyendo todas las variables en el modelo
+
+
+pca <- prcomp(vivienda[3:7], scale = TRUE)
+res.pca <- prcomp(vivienda[3:7])
+fviz_eig(res.pca, addlabels = TRUE)
+
+fviz_pca_var(res.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#FF7F00",  "#034D94"),
+             repel = TRUE     # Avoid text overlapping
+)
+
+k2 <- kmeans(vivienda_2, centers = 4, nstart = 25)
+fviz_cluster(k2, data = vivienda[3:7])
+
+
+res4 <- hcut(vivienda[3:7], k = 4, stand = TRUE)
+fviz_dend(res4, rect = TRUE, cex = 0.5,
+          k_colors = c("red","#2E9FDF","green","black"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+##caso 2 seleccionando cinco variables de interes 
 vivienda_2 <- vivienda[1:8319,3:7]
 
 pca <- prcomp(vivienda_2, scale = TRUE)
