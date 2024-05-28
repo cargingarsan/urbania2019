@@ -1,4 +1,4 @@
-devtools::install_github("dgonxalex80/paqueteMODELOS")
+#devtools::install_github("dgonxalex80/paqueteMODELOS")
 library(paqueteMODELOS)
 library(factoextra)
 

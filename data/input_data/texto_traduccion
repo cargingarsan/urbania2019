@@ -1,0 +1,215 @@
+#Erik Bruin
+#https://www.kaggle.com/code/erikbruin/house-prices-lasso-xgboost-and-a-detailed-eda/script
+
+1 Executive Summary
+2 Introduction
+3 Loading and Exploring Data
+3.1 Loading libraries required and reading the data into R
+3.2 Data size and structure
+4 Exploring some of the most important variables
+4.1 The response variable; SalePrice
+4.2 The most important numeric predictors
+4.2.1 Correlations with SalePrice
+4.2.2 Overall Quality
+4.2.3 Above Grade (Ground) Living Area (square feet)
+5 Missing data, label encoding, and factorizing variables
+5.1 Completeness of the data
+5.2 Imputing missing data
+5.3 Label encoding/factorizing the remaining character variables
+5.4 Changing some numeric variables into factors
+5.4.1 Year and Month Sold
+5.4.2 MSSubClass
+6 Visualization of important variables
+6.1 Correlations again
+6.2 Finding variable importance with a quick Random Forest
+6.2.1 Above Ground Living Area, and other surface related variables (in square feet)
+6.2.2 The most important categorical variable; Neighborhood
+6.2.3 Overall Quality, and other Quality variables
+6.2.4 The second most important categorical variable; MSSubClass
+6.2.5 Garage variables
+6.2.6 Basement variables
+7 Feature engineering
+7.1 Total number of Bathrooms
+7.2 Adding ‘House Age’, ‘Remodeled (Yes/No)’, and IsNew variables
+7.3 Binning Neighborhood
+7.4 Total Square Feet
+7.5 Consolidating Porch variables
+8 Preparing data for modeling
+8.1 Dropping highly correlated variables
+8.2 Removing outliers
+8.3 PreProcessing predictor variables
+8.3.1 Skewness and normalizing of the numeric predictors
+8.3.2 One hot encoding the categorical variables
+8.3.3 Removing levels with few or no observations in train or test
+8.4 Dealing with skewness of response variable
+8.5 Composing train and test sets
+9 Modeling
+9.1 Lasso regression model
+9.2 XGBoost model
+9.3 Averaging predictions
+
+
+
+
+Ahora comprobaremos qué columnas tienen valores faltantes tanto en train_data como en test_data.
+
+Como podemos ver hasta ahora, existen algunas diferencias entre el número total de valores faltantes en train_data y test_data.
+
+Usaremos GG para trazar los valores faltantes para poder verlos mejor.
+
+Conociendo las proporciones de los valores faltantes, vayamos un poco más allá y exploremos la distribución de SalePrice en train_data usando un ggplot para comprender su asimetría e identificar posibles valores atípicos.
+
+A partir de los gráficos, identificamos que la mayoría de los NA no son realmente valores faltantes, pero en la mayoría de los casos significa "Ninguno". Por ejemplo, tenemos muchos NA en PoolQc o Alley, pero al investigar el .csv, descubrimos que no puedes tener PoolQc si no tienes un grupo. Y lo mismo ocurre con algunas otras funciones también. Entonces, decidimos reemplazar los valores faltantes con Ninguno en train_data y test_data.
+
+Vamos a trazar la proporción de ellos nuevamente, para que podamos decidir qué tipo de imputación elegir para estos valores faltantes.
+
+Formato y categorización de datos¶
+Conversión a factores y factores ordenados
+
+Es fundamental representar correctamente los diferentes tipos de datos categóricos presentes en nuestro conjunto de datos.
+
+Variables nominales (sin orden): variables como MSZoning, Street y Neighborhood representan categorías sin ningún orden inherente. Los convertiremos en factores para garantizar que los algoritmos de modelado los traten como categorías distintas en lugar de números con magnitudes.
+
+Variables ordinales (el orden importa): variables como ExterQual, BsmtQual y HeatingQC poseen un orden significativo en sus categorías. Los convertiremos en factores ordenados para preservar este orden.
+
+Calidad de la piscina
+
+PoolQC: Calidad del grupo Ex Excelente Gd Bueno TA Promedio/típico Fa Aceptable NA Sin grupo
+
+Convertido a un factor ordenado: aplica el orden: especifica la clasificación de calidad inherente a los datos ("Ex" es mejor que "Gd", etc.)
+
+Realizamos la conversión tanto en train_data como en test_data para mantener la coherencia para el modelado posterior. Veamos cómo se ve ahora la estructura train_data con nuestros factores.
+
+Volviendo a los valores faltantes, arreglémoslos tanto en train_data como en test_data.
+1. Frente al lote
+
+El número de valores faltantes aquí es relativamente alto. Dado que el LotFrontage (los pies lineales de la calle conectada a la propiedad) puede variar según el vecindario, una estrategia común es imputar los valores faltantes en función del LotFrontage medio del vecindario.
+
+2. MasVnrArea
+
+Dado que MasVnrArea (área de revestimiento de mampostería en pies cuadrados) es numérico y le faltan algunos valores, estos podrían imputarse mediante una medida de tendencia central.
+
+4. Imputar GarageYrBlt con YearBuilt
+
+Para las casas donde falta GarageYrBlt, usaremos el año en que se construyó la casa (YearBuilt). Esto supone que el garaje se construyó al mismo tiempo que la casa, ya que inspeccionamos los conjuntos de datos y notamos que, con frecuencia, YearBuilt es similar a GarageYrBlt.
+Validación adicional
+
+Para asegurarnos de que la imputación tiene sentido, comprobaremos la relación entre GarageYrBlt y YearBuilt para confirmar que no hay garajes con un año de construcción anterior a la casa, lo que podría ser una anomalía.
+Hay 9 casos en los que GarageYrBlt es anterior a YearBuilt. Potencialmente, esto podría ser un error de entrada de datos o podría indicar que el garaje de la propiedad se conservó de una estructura anterior cuando se construyó la casa actual, lo que podría ser un escenario plausible en algunas renovaciones o reconstrucciones.
+
+Verificaremos más a fondo para ver si completamos la imputación de los valores faltantes en train_data y test_data.
+
+Podemos ver que todavía faltan algunos valores en test_data, así que imputémoslos manualmente y usando una función auxiliar que calcula el modo.
+
+MSZoning - Imputación con la moda (valor más común) de esta variable categórica.
+
+Utilidades: como suele ser 'AllPub', imputación con el modo.
+
+Exterior1º y Exterior2º - Imputación con la moda de estas variables categóricas.
+
+BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF: falta, probablemente no haya sótano; establecido en 0.
+
+BsmtFullBath y BsmtHalfBath: faltan, probablemente no haya sótano; establecido en 0.
+
+KitchenQual - Imputación con la moda al ser una variable categórica.
+
+Funcional: imputación con 'Typ', ya que es la categoría más común que indica una funcionalidad típica.
+
+GarageCars y GarageArea: faltantes, probablemente no haya garaje; establecido en 0.
+
+SaleType - Imputación con la moda.
+
+impute_mode <- function(data, variable) {
+  mode_value <- names(which.max(table(data[[variable]])))
+  data <- data %>%
+    mutate({{variable}} := replace({{variable}}, is.na({{variable}}), mode_value))
+  return(data)
+}
+
+# Aplicar la función a las variables deseadas
+variables <- c("garage", "porch", "sale_condition")
+for (var in variables) {
+  train_data <- impute_mode(train_data, var)
+}
+
+
+Detectar valores atípicos
+
+Usando DataExplorer nuevamente, veamos la distribución de características numéricas y también generaremos diagramas de caja para todas las variables numéricas para visualizar posibles valores atípicos.
+
+
+Parece que, de hecho, hay algunas características con una superposición significativa, lo que potencialmente podría conducir a multicolinealidad en nuestro modelo.
+
+GrLivArea y 1stFlrSF (correlación de 0,825)
+
+GrLivArea está altamente correlacionada con SalePrice (0,7086).
+
+1stFlrSF también se correlaciona con SalePrice pero ligeramente menos (0,6059).
+
+Eliminaremos 1stFlrSF porque GrLivArea proporciona una relación más sólida con SalePrice y cubre información similar como una medida del área habitable.
+
+GarageCars y GarageArea (correlación 0,882)
+
+GarageCars se correlaciona con SalePrice (0,6404).
+
+GarageArea también está fuertemente correlacionado con SalePrice (0,6234).
+
+Eliminaremos GarageArea porque GarageCars cuantifica el tamaño del garaje de una manera más discreta y potencialmente más interpretable (número de automóviles) que la variable continua GarageArea.
+
+Año de construcción y garajeYrBlt (correlación de 0,845)
+
+YearBuilt está moderadamente correlacionado con SalePrice (0,5229).
+
+GarageYrBlt puede tener un impacto un poco menos directo en SalePrice y, en ocasiones, puede simplemente duplicar la información ya presentada por YearBuilt.
+
+Eliminaremos GarageYrBlt y mantendremos YearBuilt ya que cubre el aspecto esencial de la antigüedad de la propiedad, que probablemente influye más en SalePrice.
+
+También eliminaremos 2ndFlrSF y 3SSnPorch ya que GrLivArea contiene la suma de 1stFlrSF y 2ndFlrSF.
+
+
+
+Nuestro enfoque es utilizar *bosques aleatorios* para evaluar la importancia de las características, ya que este tipo de modelo es bueno para manejar una combinación de datos numéricos y categóricos y no requiere escalamiento. Usaremos el paquete randomForest en R para ajustar el modelo y obtener la importancia de las características.
+
+## Ingeniería de características
+La ingeniería de características es un paso en el preprocesamiento de datos que implica la creación de nuevas variables a partir de las existentes para mejorar las predicciones.
+
+En este caso concreto se diseñan dos novedades: TotalBathrooms y TotalSquareFeet.
+
+Creación de TotalBathrooms La función TotalBathrooms agrega todos los datos de baños en una sola función al resumir el recuento de baños completos y medios baños tanto en el sótano como en las áreas superiores (no sótano) de la casa. Los baños completos cuentan como uno, mientras que los medios baños cuentan como 0,5, reconociendo que los medios baños tienen menos utilidad que los baños completos.
+
+Creando pies cuadrados totales
+
+La función TotalSquareFeet combina el área habitable sobre el suelo (GrLivArea) y el área total del sótano (TotalBsmtSF) para proporcionar una mejor medida del área utilizable total de la casa. Esta agregación podría proporcionar un predictor más impactante que considerar estas áreas por separado porque el espacio combinado a menudo se traduce más directamente en las percepciones de tamaño y valor de los consumidores.
+
+
+La receta se "prepara" utilizando los datos de entrenamiento. La función de preparación calcula todas las estadísticas requeridas, como la media para el centrado y los índices vecinos para la imputación KNN.
+
+La función de horneado se utiliza para aplicar la receta preparada a los datos de entrenamiento (train_baked).
+
+De manera similar, se aplican las mismas transformaciones a los datos de prueba (test_baked) para garantizar que tanto los datos de entrenamiento como los de prueba pasen por los mismos pasos de preprocesamiento.
+
+Primero, hagamos una transformación de registro que sea efectiva para datos sesgados hacia la derecha en SalePrice.
+
+
+#Especificación, ajuste y predicciones de modelos.
+Esta sección explica la configuración, el entrenamiento y la evaluación de tres modelos predictivos diferentes para la predicción del precio de la vivienda: bosque aleatorio, regresión lineal y máquina de aumento de gradiente (GBM) utilizando los motores ranger, lm y xgboost respectivamente. Estos modelos se evalúan utilizando los datos train_baked, que han sido preprocesados para ajustarse a los requisitos del modelado.
+
+
+#modelo GBM ()
+Configurado con 1000 árboles, profundidad de árbol específica, tamaño mínimo de nodo, reducción de pérdidas y tamaño de muestra, utilizando la función boost_tree y el motor xgboost. El modelo GBM se entrena en train_baked y las predicciones se realizan en test_baked.
+
+
+#HIPERTUNING¶
+Para realizar un ajuste de hiperparámetros simple para nuestros modelos especificados (Random Forest y Gradient Boosting Machine (GBM) usando XGBoost), podemos configurar una cuadrícula de ajuste básica para cada modelo y usar validación cruzada para evaluar el rendimiento en diferentes conjuntos de parámetros.
+
+HIPERTUNING RF
+
+biblioteca (diales)
+Preparación de datos y configuración de recetas
+
+Definimos una receta para preprocesar datos train_baked convirtiendo todas las variables categóricas en variables ficticias y normalizando todas las variables numéricas. Luego, la receta se prepara utilizando la función prep() que calcula todos los pasos de preprocesamiento.
+
+
+#Revertir la transformación de registros
+
+La variable objetivo SalePrice se transformó logarítmicamente (lo cual es común en tareas de regresión para manejar la asimetría), por lo que aplicaremos la función exponencial para revertirla.
