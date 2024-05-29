@@ -363,7 +363,7 @@ all[!is.na(all$SalePrice),] |> group_by(MasVnrType) |>
   summarise(median = median(SalePrice), counts=n()) |> 
   arrange(median)
 
-#Masonry <- c('None'=0, 'BrkCmn'=0, 'BrkFace'=1, 'Stone'=2)
+Masonry <- c('None'=0, 'BrkCmn'=0, 'BrkFace'=1, 'Stone'=2)
 all$MasVnrType<-as.integer(revalue(all$MasVnrType, Masonry))
 table(all$MasVnrType)
 
@@ -966,6 +966,10 @@ head(predictions_lasso)
 
 ##Modelo XGBoost
 
+class(train)
+class(all$SalePrice[!is.na(all$SalePrice)])
+
+my_control <-trainControl(method="cv", number=5)
 xgb_grid = expand.grid(
   nrounds = 1000,
   eta = c(0.1, 0.05, 0.01),
@@ -976,7 +980,28 @@ xgb_grid = expand.grid(
   subsample=1
 )
 
-xgb_caret <- train(x=train1, y=all$SalePrice[!is.na(all$SalePrice)], method='xgbTree', trControl= my_control, tuneGrid=xgb_grid) 
+set.seed(1)
+df <- winetaste
+nobs <- nrow(df)
+itrain <- sample(nobs, 0.8 * nobs)
+train <- df[itrain, ]
+test <- df[-itrain, ]
+
+caret.xgb <- train(taste ~ ., 
+                   method = "xgbTree", 
+                   data = train,
+                   trControl = trainControl(method = "cv", number = 5),
+                   verbosity = 0)
+caret.xgb
+
+xgb_caret <- train(x=train1,
+                   y=all$SalePrice[!is.na(all$SalePrice)], 
+                   method='xgbTree', 
+                   trControl= trainControl(method="cv", number=5), 
+                   tuneGrid=xgb_grid,
+                   verbosity = 0) 
+
+
 
 xgb_caret$bestTune
 
