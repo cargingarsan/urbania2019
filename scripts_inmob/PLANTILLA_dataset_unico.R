@@ -654,10 +654,342 @@ n2 <- ggplot(data=all, aes(x=Neighborhood)) +
 grid.arrange(n1, n2)
 
 
+#Calidad global y otras variables de calidad
+
+q1 <- ggplot(data=all, aes(x=as.factor(OverallQual))) +
+  geom_histogram(stat='count')
+q2 <- ggplot(data=all, aes(x=as.factor(ExterQual))) +
+  geom_histogram(stat='count')
+q3 <- ggplot(data=all, aes(x=as.factor(BsmtQual))) +
+  geom_histogram(stat='count')
+q4 <- ggplot(data=all, aes(x=as.factor(KitchenQual))) +
+  geom_histogram(stat='count')
+q5 <- ggplot(data=all, aes(x=as.factor(GarageQual))) +
+  geom_histogram(stat='count')
+q6 <- ggplot(data=all, aes(x=as.factor(FireplaceQu))) +
+  geom_histogram(stat='count')
+q7 <- ggplot(data=all, aes(x=as.factor(PoolQC))) +
+  geom_histogram(stat='count')
+
+layout <- matrix(c(1,2,8,3,4,8,5,6,7),3,3,byrow=TRUE)
+multiplot(q1, q2, q3, q4, q5, q6, q7, layout=layout)
+
+
+#La segunda variable categórica más importante; MSSubClass
+
+#la mayoria de las casas son nuevas y tienen uno o dos pisos
+
+ms1 <- ggplot(all[!is.na(all$SalePrice),], aes(x=MSSubClass, y=SalePrice)) +
+  geom_bar(stat='summary', fun.y = "median", fill='blue') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=50000), labels = comma) +
+  geom_label(stat = "count", aes(label = ..count.., y = ..count..), size=3) +
+  geom_hline(yintercept=163000, linetype="dashed", color = "red") #dashed line is median SalePrice
+ms2 <- ggplot(data=all, aes(x=MSSubClass)) +
+  geom_histogram(stat='count')+
+  geom_label(stat = "count", aes(label = ..count.., y = ..count..), size=3) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+grid.arrange(ms1, ms2)
+
+
+#Garaje variables
+
+#correct error
+all$GarageYrBlt[2593] <- 2007 #this must have been a typo. GarageYrBlt=2207, YearBuilt=2006, YearRemodAdd=2007.
+
+g1 <- ggplot(data=all[all$GarageCars !=0,], aes(x=GarageYrBlt)) +
+  geom_histogram()
+g2 <- ggplot(data=all, aes(x=as.factor(GarageCars))) +
+  geom_histogram(stat='count')
+g3 <- ggplot(data= all, aes(x=GarageArea)) +
+  geom_density()
+g4 <- ggplot(data=all, aes(x=as.factor(GarageCond))) +
+  geom_histogram(stat='count')
+g5 <- ggplot(data=all, aes(x=GarageType)) +
+  geom_histogram(stat='count')
+g6 <- ggplot(data=all, aes(x=as.factor(GarageQual))) +
+  geom_histogram(stat='count')
+g7 <- ggplot(data=all, aes(x=as.factor(GarageFinish))) +
+  geom_histogram(stat='count')
+
+layout <- matrix(c(1,5,5,2,3,8,6,4,7),3,3,byrow=TRUE)
+multiplot(g1, g2, g3, g4, g5, g6, g7, layout=layout)
+
+
+#Variables del sótano
+
+b1 <- ggplot(data=all, aes(x=BsmtFinSF1)) +
+  geom_histogram() + labs(x='Type 1 finished square feet')
+b2 <- ggplot(data=all, aes(x=BsmtFinSF2)) +
+  geom_histogram()+ labs(x='Type 2 finished square feet')
+b3 <- ggplot(data=all, aes(x=BsmtUnfSF)) +
+  geom_histogram()+ labs(x='Unfinished square feet')
+b4 <- ggplot(data=all, aes(x=as.factor(BsmtFinType1))) +
+  geom_histogram(stat='count')+ labs(x='Rating of Type 1 finished area')
+b5 <- ggplot(data=all, aes(x=as.factor(BsmtFinType2))) +
+  geom_histogram(stat='count')+ labs(x='Rating of Type 2 finished area')
+b6 <- ggplot(data=all, aes(x=as.factor(BsmtQual))) +
+  geom_histogram(stat='count')+ labs(x='Height of the basement')
+b7 <- ggplot(data=all, aes(x=as.factor(BsmtCond))) +
+  geom_histogram(stat='count')+ labs(x='Rating of general condition')
+b8 <- ggplot(data=all, aes(x=as.factor(BsmtExposure))) +
+  geom_histogram(stat='count')+ labs(x='Walkout or garden level walls')
+
+layout <- matrix(c(1,2,3,4,5,9,6,7,8),3,3,byrow=TRUE)
+multiplot(b1, b2, b3, b4, b5, b6, b7, b8, layout=layout)
+
+
+##Número total de baños
+
+all$TotBathrooms <- all$FullBath + (all$HalfBath*0.5) + all$BsmtFullBath + (all$BsmtHalfBath*0.5)
+
+tb1 <- ggplot(data=all[!is.na(all$SalePrice),], aes(x=as.factor(TotBathrooms), y=SalePrice))+
+  geom_point(col='blue') + geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=100000), labels = comma)
+tb2 <- ggplot(data=all, aes(x=as.factor(TotBathrooms))) +
+  geom_histogram(stat='count')
+grid.arrange(tb1, tb2)
+
+
+##Añadir las variables “Edad de la casa”, “Remodelado (Sí/No)” y “Es nuevo”.
+
+all$Remod <- ifelse(all$YearBuilt==all$YearRemodAdd, 0, 1) #0=No Remodeling, 1=Remodeling
+all$Age <- as.numeric(all$YrSold)-all$YearRemodAdd
+ggplot(data=all[!is.na(all$SalePrice),], aes(x=Age, y=SalePrice))+
+  geom_point(col='blue') + geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=100000), labels = comma)
+
+#As expected, the graph shows a negative correlation with Age (old house are worth less).
+
+cor(all$SalePrice[!is.na(all$SalePrice)], all$Age[!is.na(all$SalePrice)])
+
+#116 casas nuevas en el conjunto de datos.
+
+all$IsNew <- ifelse(all$YrSold==all$YearBuilt, 1, 0)
+table(all$IsNew)
+
+ggplot(all[!is.na(all$SalePrice),], aes(x=as.factor(IsNew), y=SalePrice)) +
+  geom_bar(stat='summary', fun.y = "median", fill='blue') +
+  geom_label(stat = "count", aes(label = ..count.., y = ..count..), size=6) +
+  scale_y_continuous(breaks= seq(0, 800000, by=50000), labels = comma) +
+  theme_grey(base_size = 18) +
+  geom_hline(yintercept=163000, linetype="dashed") #dashed line is median SalePrice
+
+summary(all$SalePrice)
+
+all$YrSold <- as.factor(all$YrSold) #the numeric version is now not needed anymore
+
+#Binning Neighborhood
+
+nb1 <- ggplot(all[!is.na(all$SalePrice),], aes(x=reorder(Neighborhood, SalePrice, FUN=median), y=SalePrice)) +
+  geom_bar(stat='summary', fun.y = "median", fill='blue') + labs(x='Neighborhood', y='Median SalePrice') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=50000), labels = comma) +
+  geom_label(stat = "count", aes(label = ..count.., y = ..count..), size=3) +
+  geom_hline(yintercept=163000, linetype="dashed", color = "red") #dashed line is median SalePrice
+
+nb2 <- ggplot(all[!is.na(all$SalePrice),], aes(x=reorder(Neighborhood, SalePrice, FUN=mean), y=SalePrice)) +
+  geom_bar(stat='summary', fun.y = "mean", fill='blue') + labs(x='Neighborhood', y="Mean SalePrice") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=50000), labels = comma) +
+  geom_label(stat = "count", aes(label = ..count.., y = ..count..), size=3) +
+  geom_hline(yintercept=163000, linetype="dashed", color = "red") #dashed line is median SalePrice
+
+grid.arrange(nb1, nb2)
+
+
+all$NeighRich[all$Neighborhood %in% c('StoneBr', 'NridgHt', 'NoRidge')] <- 2
+all$NeighRich[!all$Neighborhood %in% c('MeadowV', 'IDOTRR', 'BrDale', 'StoneBr', 'NridgHt', 'NoRidge')] <- 1
+all$NeighRich[all$Neighborhood %in% c('MeadowV', 'IDOTRR', 'BrDale')] <- 0
+table(all$NeighRich)
+
+
+##Pies cuadrados totales
+
+all$TotalSqFeet <- all$GrLivArea + all$TotalBsmtSF
+ggplot(data=all[!is.na(all$SalePrice),], aes(x=TotalSqFeet, y=SalePrice))+
+  geom_point(col='blue') + geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=100000), labels = comma) +
+  geom_text_repel(aes(label = ifelse(all$GrLivArea[!is.na(all$SalePrice)]>4500, rownames(all), '')))
+
+
+#Como era de esperar, la correlación con SalePrice es muy fuerte (0,78).
+
+cor(all$SalePrice, all$TotalSqFeet, use= "pairwise.complete.obs")
+
+#Los dos posibles valores atípicos parecen “salir” aún más que antes. 
+#Al eliminar estos dos valores atípicos, la correlación aumenta un 5%.
+
+cor(all$SalePrice[-c(524, 1299)], all$TotalSqFeet[-c(524, 1299)], use= "pairwise.complete.obs")
 
 
 
+#consolidacion vars porche
 
+all$TotalPorchSF <- all$OpenPorchSF + all$EnclosedPorch + all$X3SsnPorch + all$ScreenPorch
+
+cor(all$SalePrice, all$TotalPorchSF, use= "pairwise.complete.obs")
+
+ggplot(data=all[!is.na(all$SalePrice),], aes(x=TotalPorchSF, y=SalePrice))+
+  geom_point(col='blue') + geom_smooth(method = "lm", se=FALSE, color="black", aes(group=1)) +
+  scale_y_continuous(breaks= seq(0, 800000, by=100000), labels = comma)
+
+
+#Preparación de los datos para la modelización
+
+##Eliminación de variables altamente correlacionadas
+
+dropVars <- c('YearRemodAdd', 'GarageYrBlt', 'GarageArea', 'GarageCond',
+              'TotalBsmtSF', 'TotalRmsAbvGrd', 'BsmtFinSF1')
+
+all <- all[,!(names(all) %in% dropVars)]
+
+
+#eliminando valores atipicos, casas gran tamaño y bajo precio
+all <- all[-c(524, 1299),]
+
+
+##Preprocesamiento de las variables predictoras
+
+numericVarNames <- numericVarNames[!(numericVarNames %in% 
+  c('MSSubClass', 'MoSold', 'YrSold', 'SalePrice', 'OverallQual', 'OverallCond'))] 
+#numericVarNames was created before having done anything
+
+numericVarNames <- append(numericVarNames, c('Age', 
+                            'TotalPorchSF', 'TotBathrooms', 'TotalSqFeet'))
+
+DFnumeric <- all[, names(all) %in% numericVarNames]
+
+DFfactors <- all[, !(names(all) %in% numericVarNames)]
+DFfactors <- DFfactors[, names(DFfactors) != 'SalePrice']
+
+cat('There are', length(DFnumeric), 'numeric variables, and', 
+    length(DFfactors), 'factor variables')
+
+#calculando y seleccionando vars asimetricas
+for(i in 1:ncol(DFnumeric)){
+  if (abs(skew(DFnumeric[,i]))>0.8){
+    DFnumeric[,i] <- log(DFnumeric[,i] +1)
+  }
+}
+
+#Normalizing the data
+
+PreNum <- preProcess(DFnumeric, method=c("center", "scale"))
+print(PreNum)
+
+DFnorm <- predict(PreNum, DFnumeric)
+dim(DFnorm)
+
+DFdummies <- as.data.frame(model.matrix(~.-1, DFfactors))
+dim(DFdummies)
+
+
+
+#Eliminación de niveles con pocas o ninguna observación en el tren o la prueba
+
+#check if some values are absent in the test set
+ZerocolTest <- which(colSums(DFdummies[(nrow(all[!is.na(all$SalePrice),])+1):nrow(all),])==0)
+colnames(DFdummies[ZerocolTest])
+
+DFdummies <- DFdummies[,-ZerocolTest] #removing predictors
+
+#check if some values are absent in the train set
+ZerocolTrain <- which(colSums(DFdummies[1:nrow(all[!is.na(all$SalePrice),]),])==0)
+colnames(DFdummies[ZerocolTrain])
+
+## [1] "MSSubClass1,5 story PUD all"
+DFdummies <- DFdummies[,-ZerocolTrain] #removing predictor
+#También se eliminan las variables con menos de 10 “unos” en el conjunto de trenes.
+
+fewOnes <- which(colSums(DFdummies[1:nrow(all[!is.na(all$SalePrice),]),])<10)
+colnames(DFdummies[fewOnes])
+
+DFdummies <- DFdummies[,-fewOnes] #removing predictors
+dim(DFdummies)
+
+#se eliminaron 49 predictores
+
+combined <- cbind(DFnorm, DFdummies) #combining all (now numeric) predictors into one dataframe 
+##Tratamiento de la asimetría de la variable de respuesta
+
+skew(all$SalePrice)
+
+qqnorm(all$SalePrice)
+qqline(all$SalePrice)
+
+#Para solucionar esto, estoy tomando el logaritmo de SalePrice.
+
+all$SalePrice <- log(all$SalePrice) #default is the natural logarithm, "+1" is not necessary as there are no 0's
+skew(all$SalePrice)
+
+qqnorm(all$SalePrice)
+qqline(all$SalePrice)
+
+
+#Composición de los conjuntos de entrenamiento y prueba
+
+train1 <- combined[!is.na(all$SalePrice),]
+test1 <- combined[is.na(all$SalePrice),]
+
+
+##Modelo de regresión Lasso
+
+set.seed(27042018)
+my_control <-trainControl(method="cv", number=5)
+lassoGrid <- expand.grid(alpha = 1, lambda = seq(0.001,0.1,by = 0.0005))
+
+lasso_mod <- train(x=train1, y=all$SalePrice[!is.na(all$SalePrice)], 
+                   method='glmnet', trControl= my_control, tuneGrid=lassoGrid) 
+lasso_mod$bestTune
+
+min(lasso_mod$results$RMSE)
+
+#usando caret para varImport
+
+lassoVarImp <- varImp(lasso_mod,scale=F)
+lassoImportance <- lassoVarImp$importance
+
+varsSelected <- length(which(lassoImportance$Overall!=0))
+varsNotSelected <- length(which(lassoImportance$Overall==0))
+
+cat('Lasso uses', varsSelected, 'variables in its model, and did not select',
+    varsNotSelected, 'variables.')
+
+#Así que el lazo hizo lo que se supone que tiene que hacer: parece haber tratado
+#bien la multicolinealidad al no utilizar cerca del 45% de las variables disponibles en el modelo.
+
+LassoPred <- predict(lasso_mod, test1)
+predictions_lasso <- exp(LassoPred) #need to reverse the log to the real values
+head(predictions_lasso)
+
+
+##Modelo XGBoost
+
+xgb_grid = expand.grid(
+  nrounds = 1000,
+  eta = c(0.1, 0.05, 0.01),
+  max_depth = c(2, 3, 4, 5, 6),
+  gamma = 0,
+  colsample_bytree=1,
+  min_child_weight=c(1, 2, 3, 4 ,5),
+  subsample=1
+)
+
+xgb_caret <- train(x=train1, y=all$SalePrice[!is.na(all$SalePrice)], method='xgbTree', trControl= my_control, tuneGrid=xgb_grid) 
+
+xgb_caret$bestTune
+
+#hiperparametros
+Max_depth=3
+eta=0.05
+Min_child_weight=4
+
+label_train <- all$SalePrice[!is.na(all$SalePrice)]
+
+# put our testing & training data into two seperates Dmatrixs objects
+dtrain <- xgb.DMatrix(data = as.matrix(train1), label= label_train)
+dtest <- xgb.DMatrix(data = as.matrix(test1))
 
 
 
