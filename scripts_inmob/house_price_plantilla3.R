@@ -30,6 +30,8 @@ test$SalePrice <- NA
 all <- rbind(train, test)
 dim(all)
 
+head(all)
+
 #explorando las vars mas importantes
 
 ggplot(data=all[!is.na(all$SalePrice),], aes(x=SalePrice)) +
@@ -71,17 +73,12 @@ ggplot(data=all[!is.na(all$SalePrice),], aes(x=GrLivArea, y=SalePrice))+
 #a mayor area construida, mayor precio
 
 #Correlations with SalePrice
-numericVars <- which(sapply(all, is.numeric)) #index vector numeric variables
-numericVarNames <- names(numericVars) #saving names vector for use later on
-cat('There are', length(numericVars), 'numeric variables')
-
-all_numVar <- all[, numericVars]
-cor_numVar <- cor(all_numVar, use="pairwise.complete.obs") #correlations of all numeric variables
+charVars <- which(sapply(all, is.character)) #index vector numeric variables
+charVarNames <- names(charVars) #saving names vector for use later on
+cat('There are', length(charVars), 'numeric variables')
 
 
-
-
-NAcol <- which(colSums(is.na(all)) >= 0)
+NAcol <- which(colSums(is.na(all)) > 0)
 sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE)
 NaCol #sirve para saber el orden del index de la columna en el dataset
 
@@ -176,5 +173,5 @@ table(all$Foundation)
 
 Masonry <- c('None'=0, 'BrkCmn'=0, 'BrkFace'=1, 'Stone'=2)
 table(all$MasVnrType)
-
+table(all$PavedDrive)
 
