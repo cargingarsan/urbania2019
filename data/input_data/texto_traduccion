@@ -213,3 +213,27 @@ Definimos una receta para preprocesar datos train_baked convirtiendo todas las v
 #Revertir la transformación de registros
 
 La variable objetivo SalePrice se transformó logarítmicamente (lo cual es común en tareas de regresión para manejar la asimetría), por lo que aplicaremos la función exponencial para revertirla.
+
+
+La decisión de crear una variable ficticia “none” depende en gran medida del contexto de tus datos y del problema que estás tratando de resolver. Aquí te dejo algunos criterios que podrías considerar:
+
+Porcentaje de filas: Si un gran porcentaje de tus datos (por ejemplo, más del 20%) tiene valores faltantes para una característica particular, podría ser útil crear una variable ficticia “none”. Esto te permitiría mantener estas observaciones en tu análisis sin tener que descartarlas o imputarlas de alguna manera.
+Importancia de la característica: Si la característica que tiene valores faltantes es importante para tu análisis o modelo, podría ser útil crear una variable ficticia “none”, incluso si el porcentaje de filas con valores faltantes es relativamente pequeño.
+Valores faltantes no aleatorios: Si los valores faltantes en tu característica no son aleatorios, sino que están sistemáticamente relacionados con otras variables en tus datos, podría ser útil crear una variable ficticia “none”. Esto te permitiría capturar esta relación en tu análisis o modelo.
+En cuanto a reemplazar los valores faltantes con cero, esto puede ser apropiado para algunas características, pero no para todas. Por ejemplo, si una característica representa una cantidad o un recuento, entonces un valor faltante podría interpretarse razonablemente como cero. Sin embargo, si una característica representa una categoría, un valor faltante no necesariamente significa “ninguna categoría”.
+
+
+
+Existen varias técnicas para manejar los valores faltantes en un conjunto de datos. Aquí te menciono algunas de las más comunes:
+
+Imputación por la media, mediana o moda: Esta es una de las técnicas más simples. Consiste en reemplazar los valores faltantes con la media (para variables continuas) o la mediana (para variables discretas) o la moda (para variables categóricas).
+Imputación por regresión: Esta técnica utiliza la relación entre las variables para estimar los valores faltantes
+Existen varias técnicas para manejar los valores faltantes en un conjunto de datos. Aquí te menciono algunas de las más comunes:
+
+Imputación por la media, mediana o moda: Esta es la técnica más simple, donde los valores faltantes se reemplazan por la media (para variables continuas) o la mediana (para variables discretas) o la moda (para variables categóricas).
+Imputación por regresión: En este método, se trata el atributo con valores faltantes como una variable dependiente y se ejecuta un modelo de regresión para predecir los valores faltantes.
+Imputación múltiple por ecuaciones encadenadas (MICE): Es un método estadístico que imputa los valores faltantes múltiples veces. Se considera un enfoque más robusto ya que tiene en cuenta la incertidumbre de los valores faltantes.
+K-Nearest Neighbors (KNN): KNN puede ser utilizado para la imputación de datos faltantes. En este método, k vecinos se eligen en el conjunto de datos en función de alguna función de distancia y sus valores promedio se utilizan como imputación.
+Imputación por Árboles de Decisión: Los árboles de decisión como Random Forests también pueden ser utilizados para imputar datos faltantes.
+Imputación por Deep Learning (Datawig): Esta es una reciente técnica de imputación de datos basada en modelos de aprendizaje profundo. Datawig es una biblioteca que aprende modelos de Machine Learning utilizando redes neuronales para imputar valores en los datos.
+Es importante recordar que no existe una “mejor” técnica de imputación que funcione en todos los casos. La elección de la técnica depende del problema, el conjunto de datos y el patrón de los datos faltantes. Es recomendable probar diferentes técnicas y elegir la que mejor funcione para tu caso específico. 

@@ -80,7 +80,7 @@ cat('There are', length(charVars), 'numeric variables')
 
 NAcol <- which(colSums(is.na(all)) > 0)
 sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE)
-NaCol #sirve para saber el orden del index de la columna en el dataset
+NAcol #sirve para saber el orden del index de la columna en el dataset
 
 
 # Lista de columnas
@@ -89,6 +89,43 @@ NAcol <- c("PoolQC", "MiscFeature", "Alley", "Fence", "FireplaceQu", "LotFrontag
            "BsmtQual", "BsmtCond", "BsmtFinType1", "MasVnrType", "MasVnrArea", "Electrical")
 
 
+2919*.2
+1459*.2
+
+sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE) > 291
+
+subset("PoolQC", "MiscFeature", "Alley", "Fence", "FireplaceQu", "LotFrontage")
+
+# Hacemos un subset de las variables de interés
+vars <- c("PoolQC", "MiscFeature", "Alley", "Fence", "FireplaceQu", "LotFrontage")
+df_subset <- df %>% select(all_of(vars))
+
+library(purrr)
+Nacol <-  which(colSums(is.na(all)) > 0)
+sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE) > 291  |>
+ # select(PoolQC, MiscFeature, Alley, Fence, FireplaceQu, LotFrontage) |>
+    map_df(~replace(., is.na(.), "none"))
+
+# Aplicamos la función map para rellenar los valores NA con "none"
+Nacol80_subset_filled <- Nacol80_subset %>% map_Nacol80(~replace(., is.na(.), "none"))
+
+
+Asegúrate de tener tus datos en un data.frame llamado 'Nacol80'
+# Convierte PoolQC a un factor ordenado
+Nacol80$PoolQC <- factor(Nacol80$PoolQC, levels = c("None", "Fa", "TA", "Gd", "Ex"), ordered = TRUE)
+Nacol80_SalePrice <- all[!is.na(all$SalePrice),]
+
+# Calcula el coeficiente de correlación de Spearman
+correlation <- cor.test(Nacol80_SalePrice, Nacol80$PoolQC, method = "spearman")
+
+# Imprime el coeficiente de correlación y el valor p
+print(paste("Coeficiente de correlación de Spearman: ", correlation$estimate))
+
+
+all$PoolQC[is.na(all$PoolQC)] <- 'None'
+
+table(as.factor(Nacol80$PoolQC))
+sum(table(Nacol80$PoolQC))
 
 
 # Función para calcular la moda
@@ -109,7 +146,7 @@ print(all)
 
 str(all)
 
-NAcol <- which(colSums(is.na(all)) >= 0)
+NAcol <- which(colSums(is.na(all)) > 0)
 sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE)
 NaCol #sirve para saber el orden del index de la columna en el dataset
 
@@ -175,3 +212,15 @@ Masonry <- c('None'=0, 'BrkCmn'=0, 'BrkFace'=1, 'Stone'=2)
 table(all$MasVnrType)
 table(all$PavedDrive)
 
+# Asegúrate de tener tus datos en un data.frame llamado 'df'
+df <- as.data.frame(cbind(all$SalePrice, Nacol80$PoolQC))
+
+# Convierte PoolQC a un factor ordenado
+df$PoolQC <- factor(df$PoolQC, levels = c("None", "Fa", "TA", "Gd", "Ex"), ordered = TRUE)
+
+# Calcula el coeficiente de correlación de Spearman
+correlation <- cor.test(df$SalePrice, df$PoolQC, method = "spearman")
+
+# Imprime el coeficiente de correlación y el valor p
+print(paste("Coeficiente de correlación de Spearman: ", correlation$estimate))
+print(paste("Valor p: ", correlation$p.value))
