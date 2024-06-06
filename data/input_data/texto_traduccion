@@ -61,6 +61,11 @@ Conociendo las proporciones de los valores faltantes, vayamos un poco más allá
 
 A partir de los gráficos, identificamos que la mayoría de los NA no son realmente valores faltantes, pero en la mayoría de los casos significa "Ninguno". Por ejemplo, tenemos muchos NA en PoolQc o Alley, pero al investigar el .csv, descubrimos que no puedes tener PoolQc si no tienes un grupo. Y lo mismo ocurre con algunas otras funciones también. Entonces, decidimos reemplazar los valores faltantes con Ninguno en train_data y test_data.
 
+*En la exploración de datos, generalmente se sigue el siguiente orden*:
+
+Localizar los valores atípicos (outliers): Los valores atípicos pueden afectar significativamente los resultados de tu análisis y pueden ser indicativos de errores de datos. Por lo tanto, es importante identificarlos temprano en el proceso de análisis.
+Imputar datos sobre los NAs: Una vez que has identificado y manejado los valores atípicos, el siguiente paso es tratar con los valores faltantes (NAs). La imputación de datos puede introducir sesgo si los valores atípicos no se han tratado adecuadamente, por lo que es importante hacer esto después de tratar con los valores atípicos.
+
 Vamos a trazar la proporción de ellos nuevamente, para que podamos decidir qué tipo de imputación elegir para estos valores faltantes.
 
 Formato y categorización de datos¶
@@ -237,3 +242,19 @@ K-Nearest Neighbors (KNN): KNN puede ser utilizado para la imputación de datos 
 Imputación por Árboles de Decisión: Los árboles de decisión como Random Forests también pueden ser utilizados para imputar datos faltantes.
 Imputación por Deep Learning (Datawig): Esta es una reciente técnica de imputación de datos basada en modelos de aprendizaje profundo. Datawig es una biblioteca que aprende modelos de Machine Learning utilizando redes neuronales para imputar valores en los datos.
 Es importante recordar que no existe una “mejor” técnica de imputación que funcione en todos los casos. La elección de la técnica depende del problema, el conjunto de datos y el patrón de los datos faltantes. Es recomendable probar diferentes técnicas y elegir la que mejor funcione para tu caso específico. 
+
+
+En resumen, mientras que la desviación estándar (sd) es una medida de la variabilidad dentro de un conjunto de datos, el error estándar (se) es una medida de la precisión con la que la media de la muestra estima la media de la población. Espero que esto aclare tus dudas. 
+
+Claro, puedo ayudarte con eso. En el contexto de la función describe() del paquete psych en R, trimmed y mad son estadísticas descriptivas que se calculan para cada columna de un dataframe o matriz1:
+
+trimmed: Es la media recortada. Esta estadística se calcula eliminando una fracción de los valores más altos y más bajos (especificados por el parámetro trim, que por defecto es 0.1) antes de calcular la media1. La media recortada puede ser útil para reducir el efecto de los valores atípicos en la media.
+
+mad: Es la Desviación Absoluta Mediana (Median Absolute Deviation, en inglés). Esta estadística es una medida de la dispersión de los datos y se calcula a partir de la mediana1. La mad es menos sensible a los valores atípicos que la desviación estándar, por lo que puede ser útil cuando los datos tienen valores atípicos significativos.
+
+La decisión de imputar las variables categóricas como factores o como caracteres en R depende en gran medida del análisis que planeas realizar y de la naturaleza de tus datos.
+
+Imputación como factores: En R, los factores son utilizados para representar datos categóricos. Si planeas realizar un análisis que involucre modelos estadísticos (como la regresión lineal), puede ser útil convertir las variables de caracteres a factores antes de la imputación. Esto se debe a que muchos modelos en R manejan automáticamente las variables factoriales mediante la creación de variables dummy.
+
+Imputación como caracteres: Por otro lado, si tus variables categóricas son ordinales (es decir, las categorías tienen un orden específico), puede que no quieras convertirlas en factores antes de la imputación. En este caso, podrías considerar métodos de imputación que preserven el orden de las categorías.
+En última instancia, la elección entre estos dos enfoques depende de tus necesidades específicas de análisis y de la naturaleza de tus datos. Te recomendaría que experimentes con ambos enfoques y veas cuál produce los resultados más útiles para tu situación específica.

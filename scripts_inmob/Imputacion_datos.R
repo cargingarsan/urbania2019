@@ -69,10 +69,33 @@ complete.data <- mice::complete(imputed_data)
 
 xyplot(imputed_data,GarageYrBlt ~LotFrontage)
 
-mosaicMiss(imputed_data, Alley, LotFrontage)
+#el valor atipico de GarageYrBlt sale en 2207 cuando deberia ser 2007
+which (imputed_data$data$GarageYrBlt > 2200)
+#ahora remplazo por el valor mas cercano
+imputed_data$data$GarageYrBlt[2593] <- 2007
+#[1] 2207
+
+#lotfrontage tiene dos valores atipicos
+which(imputed_data$data$LotFrontage > 300)
+imputed_data$data$LotFrontage[935] <- 
+imputed_data$data$LotFrontage[1299] <-
+
+median(imputed_data$data$LotFrontage, na.omit=T)
+mode(imputed_data$data$LotFrontage)
+mean(imputed_data$data$LotFrontage)
+
+xyplot(imputed_data,GarageYrBlt ~LotFrontage)
+
+
+par(mfrow=c(1,2))
+plot(density(base$GarageYrBlt,na.rm = T),col=2,main="GarageYrBlt")
+lines(density(complete.data$GarageYrBlt),col=3)
+plot(density(base$LotFrontage,na.rm = T),col=2,main="LotFrontage")
+lines(density(complete.data$LotFrontage),col=3)
 
 
 #graficar dos variables categoricas, usar mosaicplot de paquete vcd 
+mosaicMiss(imputed_data, Alley, LotFrontage)
 
 # Carga el paquete
 library(vcd)
@@ -90,20 +113,10 @@ mosaicplot(tab, main="Mosaic Plot of Alley and Fence", xlab="Alley", ylab="Fence
 
 summary(imputed_data$data$GarageYrBlt)
 
-#el valor atipico de GarageYrBlt sale en 2207 cuando deberia ser 2007
-which (imputed_data$data$GarageYrBlt > 2200)
-#ahora remplazo por el valor mas cercano
-imputed_data$data$GarageYrBlt[2593] <- 2007
-#[1] 2207
 
 
 
 
-par(mfrow=c(1,2))
-plot(density(base$GarageYrBlt,na.rm = T),col=2,main="GarageYrBlt")
-lines(density(complete.data$GarageYrBlt),col=3)
-plot(density(base$LotFrontage,na.rm = T),col=2,main="LotFrontage")
-lines(density(complete.data$LotFrontage),col=3)
 
 
 
@@ -113,7 +126,6 @@ impute_arg1  <- mice(base[,names(base) %in% columns],m = 1,
 
 impute_arg <- mice::complete(impute_arg1)
 
-mosaicplot(impute_arg1,GarageYrBlt ~LotFrontage)
 
 #graficando
 par(mfrow=c(1,2))
@@ -139,6 +151,9 @@ lines(density(complete.data1$LotFrontage),col=3)
 
 aggr(complete.data1)
 aggr(complete.data3)
+
+psych::describe(complete.data3)
+
 skimr::skim(complete.data1)
 skimr::skim(complete.data3)
 
@@ -155,11 +170,25 @@ library(tidyr)
 
 imputar <- tidyr::fill(base, PoolQC)
 
+#otra forma con este paquete 
+
+#remotes::install_github("cran/DMwR")
+library(DMwR2)
+
+attach(all)
+names(all)
+
+# get numeric columns using dplyr() function            
+dat <- select_if(iris, is.numeric)
+names(iris)
+
+lof.scores <- lofactor(iris[,-5],10)
+
+iris
 
 
 
-
-#imputacion multiple
+#imputaall#imputacion multiple
 
 imputed_data3 <- mice(base[,names(base) %in% columns], seed=2018,print = F,
                       m = 30)
@@ -187,6 +216,12 @@ rand.imput <-function(x){
 
 complete.data4 <- rand.imput(base$GarageYrBlt)
 complete.data5 <- rand.imput(base$LotFrontage)
+
+complete.data6 <- map(base, rand.imput)
+str(complete.data6)
+table(complete.data6$Alley)
+table(base$Alley)
+
 
 par(mfrow=c(1,2))
 

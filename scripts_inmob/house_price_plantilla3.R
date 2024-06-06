@@ -110,7 +110,7 @@ sort(colSums(sapply(all[NAcol], is.na)), decreasing = TRUE) > 291  |>
 Nacol80_subset_filled <- Nacol80_subset %>% map_Nacol80(~replace(., is.na(.), "none"))
 
 
-Asegúrate de tener tus datos en un data.frame llamado 'Nacol80'
+#Asegúrate de tener tus datos en un data.frame llamado 'Nacol80'
 # Convierte PoolQC a un factor ordenado
 Nacol80$PoolQC <- factor(Nacol80$PoolQC, levels = c("None", "Fa", "TA", "Gd", "Ex"), ordered = TRUE)
 Nacol80_SalePrice <- all[!is.na(all$SalePrice),]
